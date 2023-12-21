@@ -1,0 +1,9 @@
+[[https://github.com/Kyure-A/jobcan][https://img.shields.io/github/tag/Kyure-A/jobcan.svg?style=flat-square]]
+[[file:LICENSE][https://img.shields.io/github/license/Kyure-A/jobcan.svg?style=flat-square]]
+[[https://codecov.io/gh/Kyure-A/jobcan?branch=master][https://img.shields.io/codecov/c/github/Kyure-A/jobcan.svg?style=flat-square]]
+[[https://github.com/Kyure-A/jobcan/actions][https://img.shields.io/github/actions/workflow/status/Kyure-A/jobcan/test.yml.svg?branch=master&style=flat-square]]
+* jobcan: Managing jobcan in Emacs
+
+* How to Use?
+* License
+This package is licensed by The GNU General Public License verson 3 or later. See [[file:LICENSE][LICENSE]].
