@@ -32,6 +32,7 @@
 
 (require 'auth-source)
 (require 'request)
+(require 'elquery)
 
 (defgroup jobcan ()
   "Managing jobcan in Emacs."
@@ -39,14 +40,51 @@
   :prefix "jobcan-"
   :link '(url-link "https://github.com/Kyure-A/jobcan.el"))
 
+(defcustom night-shift-p nil
+  "Whether the user works the night shift or not."
+  :type 'boolean)
+
+(defun jobcan--extract-content-by-name (html-str name) ;; html-str: string, name: string -> string
+  (nth 3
+       (elquery-props
+	(car (elquery-$ (format "[name=%s]" name)
+			(elquery-read-string html-str))))))
+
+(defun jobcan--get-csrf-token () ;; void -> string
+  (let ((request-response nil))
+    (request "https://id.jobcan.jp/users/sign_in"
+      :complete (cl-function
+		 (lambda (&key resp &allow-other-keys)
+		   (setf request-response resp)
+		   (message "%s" (request-response-data request-response)))))
+    (jobcan--extract-content-by-name (request-response-data request-response))))
+
 (defun jobcan-credential ()
   "Credential."
   )
 
-(defun jobcan-touch ()
+(defun jobcan--parse-load-top-informations (load-top-info) ;; load-top-info: string -> list<string>
+  (mapcar #'elquery-text
+	  (elquery-$ "span" (elquery-read-string load-top-info))))
+
+(defun jobcan-touch () ;; void -> string
   "Punch in to jobcan."
-  (let (())
-    ))
+  (let ((request-response nil))
+    (request "https://id.jobcan.jp/users/sign_in"
+      :type "POST"
+      :data '(("authenticity_token" . (jobcan--extract-content-by-name (request-response-data resp) "csrf-token"))
+	      ("user[email]" . "") ;; credential
+	      ("user[client_code]" . "")
+	      ("user[password]" . "") ;; credential
+	      ("save_sign_in_information" . "true")
+	      ("redirect_uri" . "https://ssl.jobcan.jp/jbcoauth/callback")
+	      ("app_key" . "atd")
+	      ("commit" .  "ログイン"))
+      :parser 'json-read
+      :complete (cl-function
+		 (lambda (&key resp &allow-other-keys)
+		   (setf request-response resp))))
+    (jobcan--parse-load-top-informations (request-response-data request-response))))
 
 (defun jobcan-status ()
   "Retrieve status from jobcan.")
