@@ -63,11 +63,7 @@
   "Credential."
   )
 
-(defun jobcan--parse-load-top-informations (load-top-info) ;; load-top-info: string -> list<string>
-  (mapcar #'elquery-text
-	  (elquery-$ "span" (elquery-read-string load-top-info))))
-
-(defun jobcan-touch () ;; void -> string
+(defun jobcan-login () ;; void -> string
   "Punch in to jobcan."
   (let ((request-response nil))
     (request "https://id.jobcan.jp/users/sign_in"
@@ -83,8 +79,26 @@
       :parser 'json-read
       :complete (cl-function
 		 (lambda (&key resp &allow-other-keys)
+		   (setf request-response resp))))))
+
+(defun jobcan--parse-top-informations (load-top-info) ;; load-top-info: string -> list<string>
+  (mapcar #'elquery-text
+	  (elquery-$ "span" (elquery-read-string load-top-info))))
+
+;; "<span>Total: 12:59<span class=\"d-inline-block ml-4\">Break: 17:19</span><span class=\"d-inline-block ml-4\">Overtime Work: 0:00</span><span class=\"d-inline-block ml-4\">Night Shifts: 0:00</span></span>" -> ("Total: 12:59" "Break: 17:19" "Overtime Work: 0:00" "Night Shifts: 0:00")
+(defun jobcan-get-top-informations ()
+  (let ((request-response nil))
+    (request "https://ssl.jobcan.jp/employee/index/adit"
+      :type "POST"
+      :headers '(("User-Agent" . "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"))
+      :data '(("is_yakin" . (if night-shift-p 1 0))
+	      )
+      :encoding 'utf-8
+      :parser 'json-read
+      :complete (cl-function
+		 (lambda (&key resp &allow-other-keys)
 		   (setf request-response resp))))
-    (jobcan--parse-load-top-informations (request-response-data request-response))))
+    (jobcan--parse-top-informations (request-response-data request-response))))
 
 (defun jobcan-status ()
   "Retrieve status from jobcan.")
