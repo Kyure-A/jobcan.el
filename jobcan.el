@@ -55,13 +55,11 @@
 ;; (jobcan--get-csrf-token :: (function () string))
 (defun jobcan--get-csrf-token ()
   ""
-  (let ((request-response nil))
-    (request "https://id.jobcan.jp/users/sign_in"
-      :complete (cl-function
-		 (lambda (&key resp &allow-other-keys)
-		   (setf request-response resp)
-		   (message "%s" (request-response-data request-response)))))
-    (jobcan--extract-content-by-name (request-response-data request-response))))
+  (let ((request-response
+	 (request
+	   "https://id.jobcan.jp/users/sign_in"
+	   :sync t)))
+    (jobcan--extract-content-by-name (request-response-data request-response) "csrf-token")))
 
 (defun jobcan-credential ()
   "Credential."
@@ -73,7 +71,7 @@
   (let ((request-response nil))
     (request "https://id.jobcan.jp/users/sign_in"
       :type "POST"
-      :data '(("authenticity_token" . (jobcan--extract-content-by-name (request-response-data resp) "csrf-token"))
+      :data '(("authenticity_token" . (jobcan--get-csrf-token))
 	      ("user[email]" . "") ;; credential
 	      ("user[client_code]" . "")
 	      ("user[password]" . "") ;; credential
