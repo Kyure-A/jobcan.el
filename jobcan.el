@@ -44,13 +44,17 @@
   "Whether the user works the night shift or not."
   :type 'boolean)
 
-(defun jobcan--extract-content-by-name (html-str name) ;; html-str: string, name: string -> string
+;; (jobcan--extract-content-by-name :: (function (string string) string))
+(defun jobcan--extract-content-by-name (html-str name)
+  ""
   (nth 3
        (elquery-props
 	(car (elquery-$ (format "[name=%s]" name)
 			(elquery-read-string html-str))))))
 
-(defun jobcan--get-csrf-token () ;; void -> string
+;; (jobcan--get-csrf-token :: (function () string))
+(defun jobcan--get-csrf-token ()
+  ""
   (let ((request-response nil))
     (request "https://id.jobcan.jp/users/sign_in"
       :complete (cl-function
@@ -63,7 +67,8 @@
   "Credential."
   )
 
-(defun jobcan-login () ;; void -> string
+;; (jobcan-login :: (function () string))
+(defun jobcan-login ()
   "Punch in to jobcan."
   (let ((request-response nil))
     (request "https://id.jobcan.jp/users/sign_in"
@@ -81,12 +86,17 @@
 		 (lambda (&key resp &allow-other-keys)
 		   (setf request-response resp))))))
 
-(defun jobcan--parse-top-informations (load-top-info) ;; load-top-info: string -> list<string>
+;; (jobcan--parse-top-informations :: (function (string) (list string)))
+(defun jobcan--parse-top-informations (load-top-info)
+  ""
   (mapcar #'elquery-text
 	  (elquery-$ "span" (elquery-read-string load-top-info))))
 
 ;; "<span>Total: 12:59<span class=\"d-inline-block ml-4\">Break: 17:19</span><span class=\"d-inline-block ml-4\">Overtime Work: 0:00</span><span class=\"d-inline-block ml-4\">Night Shifts: 0:00</span></span>" -> ("Total: 12:59" "Break: 17:19" "Overtime Work: 0:00" "Night Shifts: 0:00")
+
+;; (jobcan-get-top-informations :: (function () (list string)))
 (defun jobcan-get-top-informations ()
+  ""
   (let ((request-response nil))
     (request "https://ssl.jobcan.jp/employee/index/adit"
       :type "POST"
@@ -103,11 +113,13 @@
 (defun jobcan-status ()
   "Retrieve status from jobcan.")
 
+;; (jobcan-working-p :: (function () bool))
 (defun jobcan-working-p ()
   "Working?")
 
 (defalias 'jobcan-working? 'jobcan-working-p)
 
+;; (jobcan-working-p :: (function () bool))
 (defun jobcan-resting-p ()
   "Resting?")
 
