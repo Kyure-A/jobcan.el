@@ -90,7 +90,7 @@
 
 ;; (jobcan-login :: (function () string))
 (defun jobcan-login ()
-  "Punch in to jobcan."
+  "Login to jobcan."
   (let ((csrf-token (jobcan--get-csrf-token)))
     (request "https://id.jobcan.jp/users/sign_in"
       :sync t
