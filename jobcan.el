@@ -63,6 +63,16 @@
 	   :sync t)))
     (jobcan--extract-content-by-name (request-response-data request-response) "csrf-token")))
 
+;; (jobcan--get-adit-token :: (function () string))
+(defun jobcan--get-adit-token ()
+  "Get the Adit token required for aditting."
+  (jobcan-login)
+  (let ((request-response
+	 (request "https://ssl.jobcan.jp/employee"
+	   :sync t
+	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie))))))
+    (nth 5 (nth 5 (car (elquery-$ "[name=token]" (elquery-read-string (request-response-data request-response))))))))
+
 ;; (jobcan--get-value-from-cookie :: (function (string) string))
 (defun jobcan--get-value-from-cookie (key)
   "Get value by KEY from cookie."
