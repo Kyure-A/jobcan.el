@@ -44,9 +44,11 @@
   "Whether the user works the night shift or not."
   :type 'boolean)
 
+(defvaralias 'night-shift? 'night-shift-p)
+
 ;; (jobcan--extract-content-by-name :: (function (string string) string))
 (defun jobcan--extract-content-by-name (html-str name)
-  ""
+  "Specify the NAME of an HTML-STR element and extracts the corresponding content."
   (nth 3
        (elquery-props
 	(car (elquery-$ (format "[name=%s]" name)
@@ -54,7 +56,7 @@
 
 ;; (jobcan--get-csrf-token :: (function () string))
 (defun jobcan--get-csrf-token ()
-  ""
+  "Get the CSRF Token required for signing in from jobcan.jp."
   (let ((request-response
 	 (request
 	   "https://id.jobcan.jp/users/sign_in"
@@ -106,17 +108,17 @@
     (jobcan--parse-top-informations (request-response-data request-response))))
 
 (defun jobcan-status ()
-  "Retrieve status from jobcan.")
+  "Displays information (name and affiliation) of the currently linked user.")
 
 ;; (jobcan-working-p :: (function () bool))
 (defun jobcan-working-p ()
-  "Working?")
+  "Return a boolean value if the user is \"working\".")
 
 (defalias 'jobcan-working? 'jobcan-working-p)
 
 ;; (jobcan-working-p :: (function () bool))
 (defun jobcan-resting-p ()
-  "Resting?")
+  "Return a boolean value if the user is \"resting\".")
 
 (defalias 'jobcan-resting? 'jobcan-resting-p)
 
