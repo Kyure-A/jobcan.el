@@ -73,7 +73,6 @@
   (let ((csrf-token (jobcan--get-csrf-token)))
     (request "https://id.jobcan.jp/users/sign_in"
       :sync t
-      :type "POST"
       :data `(("authenticity_token" . ,csrf-token)
 	      ("user[email]" . "") ;; credential
 	      ("user[client_code]" . "")
