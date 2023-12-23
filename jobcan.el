@@ -83,9 +83,10 @@
   "Get locale from cookie."
   (jobcan--get-value-from-cookie "locale"))
 
-(defun jobcan-credential ()
-  "Credential."
-  )
+;; (jobcan--get-cookie-string ())
+(defun jobcan--get-cookie-string ()
+  "Get cookie string."
+  (request-cookie-string "id.jobcan.jp" "/" t))
 
 ;; (jobcan-login :: (function () string))
 (defun jobcan-login ()
@@ -126,8 +127,16 @@
 		   (setf request-response resp))))
     (jobcan--parse-top-informations (request-response-data request-response))))
 
+;; incomplete
 (defun jobcan-status ()
-  "Displays information (name and affiliation) of the currently linked user.")
+  "Displays information (name and affiliation) of the currently linked user."
+  (jobcan-login)
+  (let ((request-response
+	 (request "https://id.jobcan.jp/account/profile"
+	   :type "GET"
+	   :sync t
+	   :headers `(("Cookie" . ,(jobcan--get-cookie-string))))))
+    (request-response-data request-response)))
 
 ;; (jobcan-working-p :: (function () bool))
 (defun jobcan-working-p ()
