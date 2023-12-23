@@ -6,7 +6,7 @@
 ;; Keywords: tools
 
 ;; Version: 0.0.0
-;; Package-Requires: ((emacs "24.1"))
+;; Package-Requires: ((emacs "25.1") (request "0.3.3") (elquery "1.1.0"))
 ;; URL: https://github.com/Kyure-A/jobcan.el
 
 ;; SPDX-License-Identifier:  GPL-3.0-or-later
