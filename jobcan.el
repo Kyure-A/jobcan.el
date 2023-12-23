@@ -68,29 +68,26 @@
 ;; (jobcan-login :: (function () string))
 (defun jobcan-login ()
   "Punch in to jobcan."
-  (let ((request-response nil))
+  (let ((csrf-token (jobcan--get-csrf-token)))
     (request "https://id.jobcan.jp/users/sign_in"
+      :sync t
       :type "POST"
-      :data '(("authenticity_token" . (jobcan--get-csrf-token))
+      :data `(("authenticity_token" . ,csrf-token)
 	      ("user[email]" . "") ;; credential
 	      ("user[client_code]" . "")
 	      ("user[password]" . "") ;; credential
 	      ("save_sign_in_information" . "true")
-	      ("redirect_uri" . "https://ssl.jobcan.jp/jbcoauth/callback")
 	      ("app_key" . "atd")
 	      ("commit" .  "ログイン"))
-      :parser 'json-read
       :complete (cl-function
-		 (lambda (&key resp &allow-other-keys)
-		   (setf request-response resp))))))
-
-;; (jobcan--parse-top-informations :: (function (string) (list string)))
-(defun jobcan--parse-top-informations (load-top-info)
-  ""
-  (mapcar #'elquery-text
-	  (elquery-$ "span" (elquery-read-string load-top-info))))
+		 (lambda (&key resp &allow-other-keys))))))
 
 ;; "<span>Total: 12:59<span class=\"d-inline-block ml-4\">Break: 17:19</span><span class=\"d-inline-block ml-4\">Overtime Work: 0:00</span><span class=\"d-inline-block ml-4\">Night Shifts: 0:00</span></span>" -> ("Total: 12:59" "Break: 17:19" "Overtime Work: 0:00" "Night Shifts: 0:00")
+;; (jobcan--parse-top-informations :: (function (string) (list string)))
+(defun jobcan--parse-top-informations (load-top-info)
+  "Parse the html that can be obtained from LOAD-TOP-INFO (the monthly in load-top-informations)."
+  (mapcar #'elquery-text
+	  (elquery-$ "span" (elquery-read-string load-top-info))))
 
 ;; (jobcan-get-top-informations :: (function () (list string)))
 (defun jobcan-get-top-informations ()
