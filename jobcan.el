@@ -123,23 +123,17 @@
 ;; (jobcan--parse-top-informations :: (function (string) (list string)))
 (defun jobcan--parse-top-informations (load-top-info)
   "Parse the html that can be obtained from LOAD-TOP-INFO (the monthly in load-top-informations)."
-  (mapcar #'elquery-text
-	  (elquery-$ "span" (elquery-read-string load-top-info))))
+  (reverse (mapcar #'elquery-text
+		   (elquery-$ "span" (elquery-read-string load-top-info)))))
 
 ;; (jobcan-get-top-informations :: (function () (list string)))
 (defun jobcan-get-top-informations ()
-  ""
-  (let ((request-response nil))
-    (request "https://ssl.jobcan.jp/employee/index/adit"
-      :type "POST"
-      :headers '(("User-Agent" . "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"))
-      :data '(("is_yakin" . (if night-shift-p 1 0))
-	      )
-      :encoding 'utf-8
-      :parser 'json-read
-      :complete (cl-function
-		 (lambda (&key resp &allow-other-keys)
-		   (setf request-response resp))))
+  "Get working time."
+  (jobcan-login)
+  (let ((request-response
+	 (request "https://ssl.jobcan.jp/employee/index/load-top-informations"
+	   :sync t
+	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie))))))
     (jobcan--parse-top-informations (request-response-data request-response))))
 
 ;; incomplete
