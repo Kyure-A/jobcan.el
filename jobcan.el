@@ -44,6 +44,10 @@
   "Whether the user works the night shift or not."
   :type 'boolean)
 
+(defcustom jobcan-default-adit-group-id 6
+  "Adit group id.  1: ?, 2: ?, 3: ? 4: ? 5: ? 6: 業務委託契約."
+  :type 'number)
+
 (defvaralias 'night-shift? 'night-shift-p)
 
 ;; (jobcan--extract-content-by-name :: (function (string string) string))
