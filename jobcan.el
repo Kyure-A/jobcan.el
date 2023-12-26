@@ -96,7 +96,7 @@
 	 (request "https://id.jobcan.jp/account/profile"
 	   :type "GET"
 	   :sync t
-	   :headers `(("Cookie" . ,(jobcan--get-cookie-string))))))
+	   :headers `(("Cookie" . ,(jobcan--get-id-cookie-string))))))
     (cons
      (elquery-text (nth 6 (elquery-$ "td" (elquery-read-string (request-response-data request-response)))))
      (elquery-text (nth 1 (elquery-$ "td" (elquery-read-string (request-response-data request-response))))))))
@@ -121,12 +121,12 @@
   "Get locale from cookie."
   (jobcan--get-value-from-cookie "locale"))
 
-;; (jobcan--get-cookie-string :: (function () string))
+;; (jobcan--get-id-cookie-string :: (function () string))
 (defun jobcan--get-id-cookie-string ()
   "Get cookie string of id.jobcan.jp."
   (request-cookie-string "id.jobcan.jp" "/" t))
 
-;; (jobcan--get-cookie-string :: (function () string))
+;; (jobcan--get-ssl-cookie-string :: (function () string))
 (defun jobcan--get-ssl-cookie-string ()
   "Get cookie string of ssl.jobcan.jp."
   (request-cookie-string "ssl.jobcan.jp" "/" t))
