@@ -31,8 +31,10 @@
 ;;; Code:
 
 (require 'auth-source)
-(require 'request)
 (require 'elquery)
+(require 'request)
+(require 's)
+
 
 (defgroup jobcan ()
   "Managing jobcan in Emacs."
@@ -76,6 +78,29 @@
 	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string))))))
     (nth 5 (nth 5 (car (elquery-$ "[name=token]" (elquery-read-string (request-response-data request-response))))))))
 
+;; (jobcan--get-top-informations :: (function () (list string)))
+(defun jobcan--get-top-informations ()
+  "Get working time."
+  (jobcan-login)
+  (let ((request-response
+	 (request "https://ssl.jobcan.jp/employee/index/load-top-informations"
+	   :sync t
+	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string))))))
+    (request-response-data request-response)))
+
+;; (jobcan--get-linked :: (function () (cons string string)))
+(defun jobcan--get-linked ()
+  "Get information (name and affiliation) of the currently linked user."
+  (jobcan-login)
+  (let ((request-response
+	 (request "https://id.jobcan.jp/account/profile"
+	   :type "GET"
+	   :sync t
+	   :headers `(("Cookie" . ,(jobcan--get-cookie-string))))))
+    (cons
+     (elquery-text (nth 6 (elquery-$ "td" (elquery-read-string (request-response-data request-response)))))
+     (elquery-text (nth 1 (elquery-$ "td" (elquery-read-string (request-response-data request-response))))))))
+
 ;; (jobcan--get-value-from-cookie :: (function (string) string))
 (defun jobcan--get-value-from-cookie (key)
   "Get value by KEY from cookie."
@@ -118,13 +143,12 @@
 	      ("user[password]" . "") ;; credential
 	      ("save_sign_in_information" . "true")
 	      ("app_key" . "atd")
-	      ("commit" .  "ログイン"))
-      :complete (cl-function
-		 (lambda (&key resp &allow-other-keys))))))
+	      ("commit" .  "ログイン")))))
 
 ;; incomplete
 (defun jobcan-touch (&rest notice)
   "Enter NOTICE as a comment (blanks allowed) and imprint."
+  (jobcan-login)
   (request "https://ssl.jobcan.jp/employee/index/adit"
     :sync t
     :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string)))
@@ -135,84 +159,78 @@
 	    ("adit_group_id" . jobcan-default-adit-group-id)
 	    ("_" . ""))))
 
-;; (jobcan--parse-top-informations :: (function (string) (list string)))
-(defun jobcan--parse-top-informations (load-top-info)
+;; (jobcan-top-informations :: (function (string) (list string)))
+(defun jobcan-top-informations ()
   "Parse the html that can be obtained from LOAD-TOP-INFO (the monthly in load-top-informations)."
   (reverse (mapcar #'elquery-text
-		   (elquery-$ "span" (elquery-read-string load-top-info)))))
-
-;; (jobcan--top-informations :: (function () (list string)))
-(defun jobcan-top-informations ()
-  "Get working time."
-  (jobcan-login)
-  (let ((request-response
-	 (request "https://ssl.jobcan.jp/employee/index/load-top-informations"
-	   :sync t
-	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie))))))
-    (jobcan--parse-top-informations (request-response-data request-response))))
-
-;; (jobcan--get-linked :: (function () (cons string string)))
-(defun jobcan--get-linked ()
-  "Get information (name and affiliation) of the currently linked user."
-  (jobcan-login)
-  (let ((request-response
-	 (request "https://id.jobcan.jp/account/profile"
-	   :type "GET"
-	   :sync t
-	   :headers `(("Cookie" . ,(jobcan--get-cookie-string))))))
-    (cons
-     (elquery-text (nth 6 (elquery-$ "td" (elquery-read-string (request-response-data request-response)))))
-     (elquery-text (nth 1 (elquery-$ "td" (elquery-read-string (request-response-data request-response))))))))
+		   (elquery-$ "span" (elquery-read-string (jobcan--get-top-informations))))))
 
 ;; (jobcan--linked :: (function () ()))
 (defun jobcan-linked ()
   "Displays information (name and affiliation) of the currently linked user."
   (interactive)
-  (let ((status (jobcan--get-status)))
+  (let ((status (jobcan--get-linked)))
     (if (string= (jobcan--get-locale) "ja")
 	(message "%s 所属の %s さんと連携しています" (cdr status) (car status))
       (message "Linked to %s's account (they are member of %s)" (car status) (cdr status)))))
 
 ;; (jobcan--make-temp-js-file :: (function (string) (string)))
-(defun jobcan--make-temp-js-file (script)
+(defun jobcan--make-temp-js-file (script objective)
   "Create a js file to be passed to node.js with SCRIPT to retrieve current_status."
   (let ((temp-js (make-temp-file "jobcan" nil ".js")))
     (with-temp-file temp-js
-      (insert (concat script " console.log(current_status);")))
+      (insert (concat script ";" (s-lex-format "console.log(${objective})"))))
     (let ((response
-	   (shell-command-to-string
-	    ;; not working
-	    (mapconcat #'shell-quote-argument
-		       (list "node " (expand-file-name temp-js))))))
+	   (s-chomp (with-temp-buffer (call-process-shell-command "deno" nil t nil "run" temp-js)
+				      (buffer-string)))))
       (delete-file temp-js)
       response)))
 
-;; incomplete
-(defun jobcan-current-status ()
+;; (jobcan--get-current-status :: (function () (string)))
+(defun jobcan--get-current-status ()
   "Get current_status."
   (jobcan-login)
   (let ((request-response
 	 (request "https://ssl.jobcan.jp/employee"
 	   :sync t
 	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string))))))
-    (let ((commands
-	   (elquery-text
-	    (nth 9 (elquery-$ "script" (elquery-read-string (request-response-data request-response)))))))
-      (if (executable-find "npm")
-	  (jobcan--make-temp-js-file commands)
-	(message "Node.js is not found. Please install it.")))))
+    (nth 0
+	 (s-split "function"
+		  (elquery-text
+		   (nth 9 (elquery-$ "script" (elquery-read-string (request-response-data request-response)))))))))
+
+;; incomplete
+(defun jobcan-current-status ()
+  "Displays current_status."
+  (interactive)
+  (if (executable-find "deno")
+      (progn
+	(let ((current-status (jobcan--make-temp-js-file (jobcan--get-current-status) "current_status")))
+	  (message "%s" current-status)
+	  current-status))
+    (message "deno is not found. Please install it.")
+    nil))
 
 ;; (jobcan-working-p :: (function () bool))
 (defun jobcan-working-p ()
-  "Return a boolean value if the user is \"working\".")
+  "Return a boolean value if the user is \"working\"."
+  (string= (jobcan-current-status) "working"))
 
 (defalias 'jobcan-working? 'jobcan-working-p)
 
-;; (jobcan-working-p :: (function () bool))
+;; (jobcan-resting-p :: (function () bool))
 (defun jobcan-resting-p ()
-  "Return a boolean value if the user is \"resting\".")
+  "Return a boolean value if the user is \"resting\"."
+  (string= (jobcan-current-status) "resting"))
 
 (defalias 'jobcan-resting? 'jobcan-resting-p)
+
+;; (jobcan-having-breakfast-p :: (function () bool))
+(defun jobcan-having-breakfast-p ()
+  "Return a boolean value if the user is \"having_breakfast\" (not yet at work)."
+  (string= (jobcan-current-status) "having_breakfast"))
+
+(defalias 'jobcan-having-breakfast? 'jobcan-having-breakfast-p)
 
 (provide 'jobcan)
 ;;; jobcan.el ends here
