@@ -66,11 +66,10 @@
 ;; (jobcan--get-adit-token :: (function () string))
 (defun jobcan--get-adit-token ()
   "Get the Adit token required for aditting."
-  (jobcan-login)
   (let ((request-response
 	 (request "https://ssl.jobcan.jp/employee"
 	   :sync t
-	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie))))))
+	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string))))))
     (nth 5 (nth 5 (car (elquery-$ "[name=token]" (elquery-read-string (request-response-data request-response))))))))
 
 ;; (jobcan--get-value-from-cookie :: (function (string) string))
@@ -94,7 +93,7 @@
   (jobcan--get-value-from-cookie "locale"))
 
 ;; (jobcan--get-cookie-string :: (function () string))
-(defun jobcan--get-cookie-string ()
+(defun jobcan--get-id-cookie-string ()
   "Get cookie string of id.jobcan.jp."
   (request-cookie-string "id.jobcan.jp" "/" t))
 
