@@ -131,6 +131,19 @@
   "Get cookie string of ssl.jobcan.jp."
   (request-cookie-string "ssl.jobcan.jp" "/" t))
 
+;; (jobcan-credential :: (function () (cons string string)))
+(defun jobcan-credential ()
+  "Get credential from authinfo."
+  (let ((credential (auth-source-search :max 1
+					:host "jobcan.jp"
+					:require '(:user :secret)
+					:create t)))
+    (let ((email (ht-get (ht<-plist (car credential))
+			 :user))
+	  (password (funcall (ht-get (ht<-plist (car auth))
+				     :secret))))
+      (cons email password))))
+
 ;; (jobcan-login :: (function () string))
 (defun jobcan-login ()
   "Login to jobcan."
@@ -138,9 +151,9 @@
     (request "https://id.jobcan.jp/users/sign_in"
       :sync t
       :data `(("authenticity_token" . ,csrf-token)
-	      ("user[email]" . "") ;; credential
+	      ("user[email]" . ,(car (jobcan-credential)))
 	      ("user[client_code]" . "")
-	      ("user[password]" . "") ;; credential
+	      ("user[password]" . ,(cdr (jobcan-credential)))
 	      ("save_sign_in_information" . "true")
 	      ("app_key" . "atd")
 	      ("commit" .  "ログイン")))))
