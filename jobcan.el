@@ -157,6 +157,35 @@
 	(message "%s 所属の %s さんと連携しています" (cdr status) (car status))
       (message "Linked to %s's account (they are member of %s)" (car status) (cdr status)))))
 
+;; (jobcan--make-temp-js-file :: (function (string) (string)))
+(defun jobcan--make-temp-js-file (script)
+  "Create a js file to be passed to node.js with SCRIPT to retrieve current_status."
+  (let ((temp-js (make-temp-file "jobcan" nil ".js")))
+    (with-temp-file temp-js
+      (insert (concat script " console.log(current_status);")))
+    (let ((response
+	   (shell-command-to-string
+	    ;; not working
+	    (mapconcat #'shell-quote-argument
+		       (list "node " (expand-file-name temp-js))))))
+      (delete-file temp-js)
+      response)))
+
+;; incomplete
+(defun jobcan-current-status ()
+  "Get current_status."
+  (jobcan-login)
+  (let ((request-response
+	 (request "https://ssl.jobcan.jp/employee"
+	   :sync t
+	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string))))))
+    (let ((commands
+	   (elquery-text
+	    (nth 9 (elquery-$ "script" (elquery-read-string (request-response-data request-response)))))))
+      (if (executable-find "npm")
+	  (jobcan--make-temp-js-file commands)
+	(message "Node.js is not found. Please install it.")))))
+
 ;; (jobcan-working-p :: (function () bool))
 (defun jobcan-working-p ()
   "Return a boolean value if the user is \"working\".")
