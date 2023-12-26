@@ -118,15 +118,27 @@
       :complete (cl-function
 		 (lambda (&key resp &allow-other-keys))))))
 
-;; "<span>Total: 12:59<span class=\"d-inline-block ml-4\">Break: 17:19</span><span class=\"d-inline-block ml-4\">Overtime Work: 0:00</span><span class=\"d-inline-block ml-4\">Night Shifts: 0:00</span></span>" -> ("Total: 12:59" "Break: 17:19" "Overtime Work: 0:00" "Night Shifts: 0:00")
+;; incomplete
+(defun jobcan-touch (&rest notice)
+  "Enter NOTICE as a comment (blanks allowed) and imprint."
+  (request "https://ssl.jobcan.jp/employee/index/adit"
+    :sync t
+    :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string)))
+    :data `(("is_yakin" . 0)
+	    ("adit-item" . "DEF")
+	    ("notice" . ,(unless notice ""))
+	    ("token" . ,(jobcan--get-adit-token))
+	    ("adit_group_id" . jobcan-default-adit-group-id)
+	    ("_" . ""))))
+
 ;; (jobcan--parse-top-informations :: (function (string) (list string)))
 (defun jobcan--parse-top-informations (load-top-info)
   "Parse the html that can be obtained from LOAD-TOP-INFO (the monthly in load-top-informations)."
   (reverse (mapcar #'elquery-text
 		   (elquery-$ "span" (elquery-read-string load-top-info)))))
 
-;; (jobcan-get-top-informations :: (function () (list string)))
-(defun jobcan-get-top-informations ()
+;; (jobcan--top-informations :: (function () (list string)))
+(defun jobcan-top-informations ()
   "Get working time."
   (jobcan-login)
   (let ((request-response
