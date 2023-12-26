@@ -46,10 +46,6 @@
   "Whether the user works the night shift or not."
   :type 'boolean)
 
-(defcustom jobcan-default-adit-group-id 6
-  "Adit group id.  1: ?, 2: ?, 3: ? 4: ? 5: ? 6: 業務委託契約."
-  :type 'number)
-
 (defvaralias 'night-shift? 'night-shift-p)
 
 ;; (jobcan--extract-content-by-name :: (function (string string) string))
@@ -156,7 +152,7 @@
 	    ("adit-item" . "DEF")
 	    ("notice" . ,(unless notice ""))
 	    ("token" . ,(jobcan--get-adit-token))
-	    ("adit_group_id" . jobcan-default-adit-group-id)
+	    ("adit_group_id" . ,(jobcan-default-adit-group-id))
 	    ("_" . ""))))
 
 ;; (jobcan-top-informations :: (function (string) (list string)))
@@ -199,17 +195,30 @@
 		  (elquery-text
 		   (nth 9 (elquery-$ "script" (elquery-read-string (request-response-data request-response)))))))))
 
-;; incomplete
-(defun jobcan-current-status ()
-  "Displays current_status."
-  (interactive)
+;; (jobcan--current-status :: (function () (string)))
+(defun jobcan--current-status ()
+  "Return current_status."
   (if (executable-find "deno")
       (progn
 	(let ((current-status (jobcan--eval-js (jobcan--get-current-status) "current_status")))
-	  (message "%s" current-status)
 	  current-status))
     (message "deno is not found. Please install it.")
     nil))
+
+;; (jobcan-default-adit-group-id :: (function () (number)))
+(defun jobcan-default-adit-group-id ()
+  "Return defaultAditGroupId."
+  (if (executable-find "deno")
+      (progn
+	(let ((current-status (jobcan--eval-js (jobcan--get-current-status) "defaultAditGroupId")))
+	  (string-to-number current-status)))
+    (message "deno is not found. Please install it.")
+    nil))
+
+;; (jobcan-current-status :: (function () (string)))
+(defun jobcan-current-status ()
+  "Displays current_status."
+  (message "%s" (jobcan--current-status)))
 
 ;; (jobcan-working-p :: (function () bool))
 (defun jobcan-working-p ()
