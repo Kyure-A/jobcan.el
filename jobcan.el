@@ -132,7 +132,7 @@
   (request-cookie-string "ssl.jobcan.jp" "/" t))
 
 ;; (jobcan-credential :: (function () (cons string string)))
-(defun jobcan-credential ()
+(defun jobcan--credential ()
   "Get credential from authinfo."
   (let ((credential (auth-source-search :max 1
 					:host "jobcan.jp"
@@ -151,9 +151,9 @@
     (request "https://id.jobcan.jp/users/sign_in"
       :sync t
       :data `(("authenticity_token" . ,csrf-token)
-	      ("user[email]" . ,(car (jobcan-credential)))
+	      ("user[email]" . ,(car (jobcan--credential)))
 	      ("user[client_code]" . "")
-	      ("user[password]" . ,(cdr (jobcan-credential)))
+	      ("user[password]" . ,(cdr (jobcan--credential)))
 	      ("save_sign_in_information" . "true")
 	      ("app_key" . "atd")
 	      ("commit" .  "ログイン")))))
@@ -161,6 +161,7 @@
 ;; (jobcan-touch :: (function () string))
 (defun jobcan-touch (&rest notice)
   "Enter NOTICE as a comment (blanks allowed) and imprint."
+  (interactive)
   (jobcan-login)
   (let ((adit-group-id (jobcan-default-adit-group-id))
 	(adit-token (jobcan--get-adit-token)))
@@ -237,6 +238,7 @@
 ;; (jobcan-current-status :: (function () (string)))
 (defun jobcan-current-status ()
   "Displays current_status."
+  (interactive)
   (message "%s" (jobcan--current-status)))
 
 ;; (jobcan-working-p :: (function () bool))
