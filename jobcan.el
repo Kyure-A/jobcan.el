@@ -174,8 +174,8 @@
 	(message "%s 所属の %s さんと連携しています" (cdr status) (car status))
       (message "Linked to %s's account (they are member of %s)" (car status) (cdr status)))))
 
-;; (jobcan--make-temp-js-file :: (function (string) (string)))
-(defun jobcan--make-temp-js-file (script objective)
+;; (jobcan--eval-js :: (function (string) (string)))
+(defun jobcan--eval-js (script objective)
   "Create a js file to be passed to node.js with SCRIPT to retrieve current_status."
   (let ((temp-js (make-temp-file "jobcan" nil ".js")))
     (with-temp-file temp-js
@@ -205,7 +205,7 @@
   (interactive)
   (if (executable-find "deno")
       (progn
-	(let ((current-status (jobcan--make-temp-js-file (jobcan--get-current-status) "current_status")))
+	(let ((current-status (jobcan--eval-js (jobcan--get-current-status) "current_status")))
 	  (message "%s" current-status)
 	  current-status))
     (message "deno is not found. Please install it.")
