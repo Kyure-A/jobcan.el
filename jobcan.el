@@ -32,9 +32,9 @@
 
 (require 'auth-source)
 (require 'elquery)
+(require 'ht)
 (require 'request)
 (require 's)
-
 
 (defgroup jobcan ()
   "Managing jobcan in Emacs."
@@ -72,7 +72,11 @@
 	 (request "https://ssl.jobcan.jp/employee"
 	   :sync t
 	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string))))))
-    (nth 5 (nth 5 (car (elquery-$ "[name=token]" (elquery-read-string (request-response-data request-response))))))))
+    (ht-get
+     (ht<-plist
+      (nth 5
+	   (car (elquery-$ "[name=token]" (elquery-read-string (request-response-data request-response))))))
+     :value)))
 
 ;; (jobcan--get-top-informations :: (function () (list string)))
 (defun jobcan--get-top-informations ()
