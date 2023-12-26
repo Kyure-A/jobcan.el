@@ -145,19 +145,21 @@
 	      ("app_key" . "atd")
 	      ("commit" .  "ログイン")))))
 
-;; incomplete
+;; (jobcan-touch :: (function () string))
 (defun jobcan-touch (&rest notice)
   "Enter NOTICE as a comment (blanks allowed) and imprint."
   (jobcan-login)
-  (request "https://ssl.jobcan.jp/employee/index/adit"
-    :sync t
-    :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string)))
-    :data `(("is_yakin" . 0)
-	    ("adit-item" . "DEF")
-	    ("notice" . ,(unless notice ""))
-	    ("token" . ,(jobcan--get-adit-token))
-	    ("adit_group_id" . ,(jobcan-default-adit-group-id))
-	    ("_" . ""))))
+  (let ((adit-group-id (jobcan-default-adit-group-id))
+	(adit-token (jobcan--get-adit-token)))
+    (request "https://ssl.jobcan.jp/employee/index/adit"
+      :sync t
+      :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string)))
+      :data `(("is_yakin" . 0)
+	      ("adit_item" . "DEF")
+	      ("notice" . ,(unless notice ""))
+	      ("token" . ,adit-token)
+	      ("adit_group_id" . ,adit-group-id)
+	      ("_" . "")))))
 
 ;; (jobcan-top-informations :: (function (string) (list string)))
 (defun jobcan-top-informations ()
