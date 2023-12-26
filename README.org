@@ -5,7 +5,7 @@
 * jobcan: Managing jobcan in Emacs
 
 * Usage
-** Punch in (Unimplemented)
+** Punch in
 #+begin_src
 M-x jobcan-touch
 #+end_src
