@@ -4,6 +4,15 @@
 [[https://github.com/Kyure-A/jobcan/actions][https://img.shields.io/github/actions/workflow/status/Kyure-A/jobcan/test.yml.svg?branch=master&style=flat-square]]
 * jobcan: Managing jobcan in Emacs
 
-* How to Use?
+* Usage
+** Punch in (Unimplemented)
+#+begin_src
+M-x jobcan-touch
+** Get information about linked users
+#+begin_src
+M-x jobcan-linked
+** Status
+#+begin_src
+M-x jobcan-current-status 
 * License
 This package is licensed by The GNU General Public License verson 3 or later. See [[file:LICENSE][LICENSE]].
