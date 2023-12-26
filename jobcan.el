@@ -135,16 +135,27 @@
 	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie))))))
     (jobcan--parse-top-informations (request-response-data request-response))))
 
-;; incomplete
-(defun jobcan-status ()
-  "Displays information (name and affiliation) of the currently linked user."
+;; (jobcan--get-linked :: (function () (cons string string)))
+(defun jobcan--get-linked ()
+  "Get information (name and affiliation) of the currently linked user."
   (jobcan-login)
   (let ((request-response
 	 (request "https://id.jobcan.jp/account/profile"
 	   :type "GET"
 	   :sync t
 	   :headers `(("Cookie" . ,(jobcan--get-cookie-string))))))
-    (request-response-data request-response)))
+    (cons
+     (elquery-text (nth 6 (elquery-$ "td" (elquery-read-string (request-response-data request-response)))))
+     (elquery-text (nth 1 (elquery-$ "td" (elquery-read-string (request-response-data request-response))))))))
+
+;; (jobcan--linked :: (function () ()))
+(defun jobcan-linked ()
+  "Displays information (name and affiliation) of the currently linked user."
+  (interactive)
+  (let ((status (jobcan--get-status)))
+    (if (string= (jobcan--get-locale) "ja")
+	(message "%s 所属の %s さんと連携しています" (cdr status) (car status))
+      (message "Linked to %s's account (they are member of %s)" (car status) (cdr status)))))
 
 ;; (jobcan-working-p :: (function () bool))
 (defun jobcan-working-p ()
