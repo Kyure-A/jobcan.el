@@ -8,11 +8,17 @@
 ** Punch in (Unimplemented)
 #+begin_src
 M-x jobcan-touch
+#+end_src
+
 ** Get information about linked users
 #+begin_src
 M-x jobcan-linked
+#+end_src
+
 ** Status
 #+begin_src
 M-x jobcan-current-status 
+#+end_src
+
 * License
 This package is licensed by The GNU General Public License verson 3 or later. See [[file:LICENSE][LICENSE]].
