@@ -5,7 +5,7 @@
 ;; Author: Kyure_A <twitter.com/kyureq>
 ;; Keywords: tools
 
-;; Version: 1.0.0
+;; Version: 1.0.1
 ;; Package-Requires: ((emacs "25.1") (elquery "1.1.0") (ht "2.4") (request "0.3.3") (s "1.13.1"))
 ;; URL: https://github.com/Kyure-A/jobcan.el
 
