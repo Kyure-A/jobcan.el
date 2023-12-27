@@ -53,29 +53,29 @@
   "Specify the NAME of an HTML-STR element and extracts the corresponding content."
   (nth 3
        (elquery-props
-	(car (elquery-$ (format "[name=%s]" name)
-			(elquery-read-string html-str))))))
+        (car (elquery-$ (format "[name=%s]" name)
+                        (elquery-read-string html-str))))))
 
 ;; (jobcan--get-csrf-token :: (function () string))
 (defun jobcan--get-csrf-token ()
   "Get the CSRF Token required for signing in from jobcan.jp."
   (let ((request-response
-	 (request
-	   "https://id.jobcan.jp/users/sign_in"
-	   :sync t)))
+         (request
+           "https://id.jobcan.jp/users/sign_in"
+           :sync t)))
     (jobcan--extract-content-by-name (request-response-data request-response) "csrf-token")))
 
 ;; (jobcan--get-adit-token :: (function () string))
 (defun jobcan--get-adit-token ()
   "Get the Adit token required for aditting."
   (let ((request-response
-	 (request "https://ssl.jobcan.jp/employee"
-	   :sync t
-	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string))))))
+         (request "https://ssl.jobcan.jp/employee"
+           :sync t
+           :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string))))))
     (ht-get
      (ht<-plist
       (nth 5
-	   (car (elquery-$ "[name=token]" (elquery-read-string (request-response-data request-response))))))
+           (car (elquery-$ "[name=token]" (elquery-read-string (request-response-data request-response))))))
      :value)))
 
 ;; (jobcan--get-top-informations :: (function () (list string)))
@@ -83,9 +83,9 @@
   "Get working time."
   (jobcan-login)
   (let ((request-response
-	 (request "https://ssl.jobcan.jp/employee/index/load-top-informations"
-	   :sync t
-	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string))))))
+         (request "https://ssl.jobcan.jp/employee/index/load-top-informations"
+           :sync t
+           :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string))))))
     (request-response-data request-response)))
 
 ;; (jobcan--get-linked :: (function () (cons string string)))
@@ -93,10 +93,10 @@
   "Get information (name and affiliation) of the currently linked user."
   (jobcan-login)
   (let ((request-response
-	 (request "https://id.jobcan.jp/account/profile"
-	   :type "GET"
-	   :sync t
-	   :headers `(("Cookie" . ,(jobcan--get-id-cookie-string))))))
+         (request "https://id.jobcan.jp/account/profile"
+           :type "GET"
+           :sync t
+           :headers `(("Cookie" . ,(jobcan--get-id-cookie-string))))))
     (cons
      (elquery-text (nth 6 (elquery-$ "td" (elquery-read-string (request-response-data request-response)))))
      (elquery-text (nth 1 (elquery-$ "td" (elquery-read-string (request-response-data request-response))))))))
@@ -135,13 +135,13 @@
 (defun jobcan--credential ()
   "Get credential from authinfo."
   (let ((credential (auth-source-search :max 1
-					:host "jobcan.jp"
-					:require '(:user :secret)
-					:create t)))
+                                        :host "jobcan.jp"
+                                        :require '(:user :secret)
+                                        :create t)))
     (let ((email (ht-get (ht<-plist (car credential))
-			 :user))
-	  (password (funcall (ht-get (ht<-plist (car auth))
-				     :secret))))
+                         :user))
+          (password (funcall (ht-get (ht<-plist (car auth))
+                                     :secret))))
       (cons email password))))
 
 ;; (jobcan-login :: (function () string))
@@ -151,12 +151,12 @@
     (request "https://id.jobcan.jp/users/sign_in"
       :sync t
       :data `(("authenticity_token" . ,csrf-token)
-	      ("user[email]" . ,(car (jobcan--credential)))
-	      ("user[client_code]" . "")
-	      ("user[password]" . ,(cdr (jobcan--credential)))
-	      ("save_sign_in_information" . "true")
-	      ("app_key" . "atd")
-	      ("commit" .  "ログイン")))))
+              ("user[email]" . ,(car (jobcan--credential)))
+              ("user[client_code]" . "")
+              ("user[password]" . ,(cdr (jobcan--credential)))
+              ("save_sign_in_information" . "true")
+              ("app_key" . "atd")
+              ("commit" .  "ログイン")))))
 
 ;; (jobcan-touch :: (function () string))
 (defun jobcan-touch (&rest notice)
@@ -164,22 +164,22 @@
   (interactive)
   (jobcan-login)
   (let ((adit-group-id (jobcan-default-adit-group-id))
-	(adit-token (jobcan--get-adit-token)))
+        (adit-token (jobcan--get-adit-token)))
     (request "https://ssl.jobcan.jp/employee/index/adit"
       :sync t
       :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string)))
       :data `(("is_yakin" . 0)
-	      ("adit_item" . "DEF")
-	      ("notice" . ,(unless notice ""))
-	      ("token" . ,adit-token)
-	      ("adit_group_id" . ,adit-group-id)
-	      ("_" . "")))))
+              ("adit_item" . "DEF")
+              ("notice" . ,(unless notice ""))
+              ("token" . ,adit-token)
+              ("adit_group_id" . ,adit-group-id)
+              ("_" . "")))))
 
 ;; (jobcan-top-informations :: (function (string) (list string)))
 (defun jobcan-top-informations ()
   "Parse the html that can be obtained from LOAD-TOP-INFO (the monthly in load-top-informations)."
   (reverse (mapcar #'elquery-text
-		   (elquery-$ "span" (elquery-read-string (jobcan--get-top-informations))))))
+                   (elquery-$ "span" (elquery-read-string (jobcan--get-top-informations))))))
 
 ;; (jobcan--linked :: (function () ()))
 (defun jobcan-linked ()
@@ -187,7 +187,7 @@
   (interactive)
   (let ((status (jobcan--get-linked)))
     (if (string= (jobcan--get-locale) "ja")
-	(message "%s 所属の %s さんと連携しています" (cdr status) (car status))
+        (message "%s 所属の %s さんと連携しています" (cdr status) (car status))
       (message "Linked to %s's account (they are member of %s)" (car status) (cdr status)))))
 
 ;; (jobcan--eval-js :: (function (string) (string)))
@@ -197,8 +197,8 @@
     (with-temp-file temp-js
       (insert (concat script ";" (s-lex-format "console.log(${objective})"))))
     (let ((response
-	   (s-chomp (with-temp-buffer (call-process-shell-command "deno" nil t nil "run" temp-js)
-				      (buffer-string)))))
+           (s-chomp (with-temp-buffer (call-process-shell-command "deno" nil t nil "run" temp-js)
+                                      (buffer-string)))))
       (delete-file temp-js)
       response)))
 
@@ -207,21 +207,21 @@
   "Get current_status."
   (jobcan-login)
   (let ((request-response
-	 (request "https://ssl.jobcan.jp/employee"
-	   :sync t
-	   :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string))))))
+         (request "https://ssl.jobcan.jp/employee"
+           :sync t
+           :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string))))))
     (nth 0
-	 (s-split "function"
-		  (elquery-text
-		   (nth 9 (elquery-$ "script" (elquery-read-string (request-response-data request-response)))))))))
+         (s-split "function"
+                  (elquery-text
+                   (nth 9 (elquery-$ "script" (elquery-read-string (request-response-data request-response)))))))))
 
 ;; (jobcan--current-status :: (function () (string)))
 (defun jobcan--current-status ()
   "Return current_status."
   (if (executable-find "deno")
       (progn
-	(let ((current-status (jobcan--eval-js (jobcan--get-current-status) "current_status")))
-	  current-status))
+        (let ((current-status (jobcan--eval-js (jobcan--get-current-status) "current_status")))
+          current-status))
     (message "deno is not found. Please install it.")
     nil))
 
@@ -230,8 +230,8 @@
   "Return defaultAditGroupId."
   (if (executable-find "deno")
       (progn
-	(let ((current-status (jobcan--eval-js (jobcan--get-current-status) "defaultAditGroupId")))
-	  (string-to-number current-status)))
+        (let ((current-status (jobcan--eval-js (jobcan--get-current-status) "defaultAditGroupId")))
+          (string-to-number current-status)))
     (message "deno is not found. Please install it.")
     nil))
 
