@@ -140,7 +140,7 @@
                                         :create t)))
     (let ((email (ht-get (ht<-plist (car credential))
                          :user))
-          (password (funcall (ht-get (ht<-plist (car auth))
+          (password (funcall (ht-get (ht<-plist (car credential))
                                      :secret))))
       (cons email password))))
 
