@@ -1,24 +1,25 @@
+#+STARTUP: content
+#+STARTUP: fold
 [[https://github.com/Kyure-A/jobcan][https://img.shields.io/github/tag/Kyure-A/jobcan.svg?style=flat-square]]
 [[file:LICENSE][https://img.shields.io/github/license/Kyure-A/jobcan.svg?style=flat-square]]
 [[https://codecov.io/gh/Kyure-A/jobcan?branch=master][https://img.shields.io/codecov/c/github/Kyure-A/jobcan.svg?style=flat-square]]
 [[https://github.com/Kyure-A/jobcan/actions][https://img.shields.io/github/actions/workflow/status/Kyure-A/jobcan/test.yml.svg?branch=master&style=flat-square]]
-* jobcan: Managing jobcan in Emacs
+* jobcan.el
 
-* Usage
-** Punch in
-#+begin_src
+Managing jobcan in Emacs.
+
+** Usage
+*** Punch in
+#+begin_src console
 M-x jobcan-touch
 #+end_src
-
-** Get information about linked users
-#+begin_src
+*** Get information about linked users
+#+begin_src console
 M-x jobcan-linked
 #+end_src
-
-** Status
-#+begin_src
-M-x jobcan-current-status 
+*** Status
+#+begin_src console
+M-x jobcan-current-status
 #+end_src
-
-* License
+** License
 This package is licensed by The GNU General Public License verson 3 or later. See [[file:LICENSE][LICENSE]].
