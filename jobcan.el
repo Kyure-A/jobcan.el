@@ -5,7 +5,7 @@
 ;; Author: Kyure_A <twitter.com/kyureq>
 ;; Keywords: tools
 
-;; Version: 1.0.1
+;; Version: 1.1.0
 ;; Package-Requires: ((emacs "25.1") (elquery "1.1.0") (ht "2.4") (request "0.3.3") (s "1.13.1"))
 ;; URL: https://github.com/Kyure-A/jobcan.el
 
@@ -158,6 +158,39 @@
               ("app_key" . "atd")
               ("commit" .  "ログイン")))))
 
+;; (jobcan--touch-response-result :: (function (string) string))
+(defun jobcan--touch-response-result (response)
+  "Return result in RESPONSE."
+  (if (executable-find "deno")
+      (let ((result (jobcan--eval-js (concat "const json = " response) "json.result")))
+        result)
+    (message "deno is not found. Please install it.")
+    nil))
+
+;; (jobcan--touch-response-current-status :: (function (string) string))
+(defun jobcan--touch-response-current-status (response)
+  "Return current_status in RESPONSE."
+  (if (executable-find "deno")
+      (let ((current-status (jobcan--eval-js (concat "const json = " response) "json.current_status")))
+        current-status)
+    (message "deno is not found. Please install it.")
+    nil))
+
+;; (jobcan--touch-return-message :: (function (string string) string))
+(defun jobcan--touch-return-message (result current-status)
+  "Return touch message (RESULT and CURRENT-STATUS)."
+  (if (string= result "1")
+      (progn
+        (when (string= current-status "working")
+          (if (string= (jobcan--get-locale) "ja")
+              (message "打刻しました (勤務開始)")
+            (message "Punch in.")))
+        (when (string= current-status "resting")
+          (if (string= (jobcan--get-locale) "ja")
+              (message "打刻しました (勤務終了)")
+            (message "Punch out."))))
+    (message "Error! Please check webpage.")))
+
 ;; (jobcan-touch :: (function () string))
 (defun jobcan-touch (&rest notice)
   "Enter NOTICE as a comment (blanks allowed) and imprint."
@@ -165,15 +198,20 @@
   (jobcan-login)
   (let ((adit-group-id (jobcan-default-adit-group-id))
         (adit-token (jobcan--get-adit-token)))
-    (request "https://ssl.jobcan.jp/employee/index/adit"
-      :sync t
-      :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string)))
-      :data `(("is_yakin" . 0)
-              ("adit_item" . "DEF")
-              ("notice" . ,(unless notice ""))
-              ("token" . ,adit-token)
-              ("adit_group_id" . ,adit-group-id)
-              ("_" . "")))))
+    (let* ((touch-response
+            (request-response-data
+             (request "https://ssl.jobcan.jp/employee/index/adit"
+               :sync t
+               :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string)))
+               :data `(("is_yakin" . 0)
+                       ("adit_item" . "DEF")
+                       ("notice" . ,(unless notice ""))
+                       ("token" . ,adit-token)
+                       ("adit_group_id" . ,adit-group-id)
+                       ("_" . "")))))
+           (result (jobcan--touch-response-result touch-response))
+           (current-status (jobcan--touch-response-current-status touch-response)))
+      (jobcan--touch-return-message result current-status))))
 
 ;; (jobcan-top-informations :: (function (string) (list string)))
 (defun jobcan-top-informations ()
