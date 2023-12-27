@@ -12,7 +12,6 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-
         emacs_version:
           - '24.1'
           - '24.2'
@@ -31,9 +30,8 @@ jobs:
           - '28.2'
           - '29.1'
           - 'snapshot'
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: purcell/setup-emacs@master
         with:
           version: ${{ matrix.emacs_version }}
@@ -41,13 +39,12 @@ jobs:
 
       - run: keg install
       - run: keg run test-all
-      - uses: codecov/codecov-action@v2
-
+      - uses: codecov/codecov-action@v3
   lint:
     runs-on: ubuntu-latest
     continue-on-error: ${{ true }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: purcell/setup-emacs@master
         with:
           version: '29.1'
