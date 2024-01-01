@@ -106,16 +106,6 @@
   "Get value by KEY from cookie."
   (cdr (assoc key (request-cookie-alist "id.jobcan.jp" "/" t))))
 
-;; (jobcan--get-jbcid-session :: (function () string))
-(defun jobcan--get-jbcid-session ()
-  "Get _jbcid_session from cookie."
-  (jobcan--get-value-from-cookie "_jbcid_session"))
-
-;; (jobcan--get-logged-in-users :: (function () string))
-(defun jobcan--get-logged-in-users ()
-  "Get logged_in_users from cookie."
-  (jobcan--get-value-from-cookie "logged_in_users"))
-
 ;; (jobcan--get-locale :: (function () string))
 (defun jobcan--get-locale ()
   "Get locale from cookie."
