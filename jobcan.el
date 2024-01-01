@@ -158,21 +158,12 @@
               ("app_key" . "atd")
               ("commit" .  "ログイン")))))
 
-;; (jobcan--touch-response-result :: (function (string) string))
-(defun jobcan--touch-response-result (response)
-  "Return result in RESPONSE."
+;; (jobcan--touch-response :: (function (string string) string))
+(defun jobcan--touch-response (response key)
+  "Return result (RESPONSE[KEY])."
   (if (executable-find "deno")
-      (let ((result (jobcan--eval-js (concat "const json = " response) "json.result")))
+      (let ((result (jobcan--eval-js (concat "const json = " response) (format "json.%s" key))))
         result)
-    (message "deno is not found. Please install it.")
-    nil))
-
-;; (jobcan--touch-response-current-status :: (function (string) string))
-(defun jobcan--touch-response-current-status (response)
-  "Return current_status in RESPONSE."
-  (if (executable-find "deno")
-      (let ((current-status (jobcan--eval-js (concat "const json = " response) "json.current_status")))
-        current-status)
     (message "deno is not found. Please install it.")
     nil))
 
@@ -196,22 +187,22 @@
   "Enter NOTICE as a comment (blanks allowed) and imprint."
   (interactive)
   (jobcan-login)
-  (let ((adit-group-id (jobcan-default-adit-group-id))
-        (adit-token (jobcan--get-adit-token)))
-    (let* ((touch-response
-            (request-response-data
-             (request "https://ssl.jobcan.jp/employee/index/adit"
-               :sync t
-               :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string)))
-               :data `(("is_yakin" . 0)
-                       ("adit_item" . "DEF")
-                       ("notice" . ,(unless notice ""))
-                       ("token" . ,adit-token)
-                       ("adit_group_id" . ,adit-group-id)
-                       ("_" . "")))))
-           (result (jobcan--touch-response-result touch-response))
-           (current-status (jobcan--touch-response-current-status touch-response)))
-      (jobcan--touch-return-message result current-status))))
+  (let* ((adit-group-id (jobcan-default-adit-group-id))
+         (adit-token (jobcan--get-adit-token))
+	 (touch-response
+          (request-response-data
+           (request "https://ssl.jobcan.jp/employee/index/adit"
+             :sync t
+             :headers `(("Cookie" . ,(jobcan--get-ssl-cookie-string)))
+             :data `(("is_yakin" . 0)
+                     ("adit_item" . "DEF")
+                     ("notice" . ,(unless notice ""))
+                     ("token" . ,adit-token)
+                     ("adit_group_id" . ,adit-group-id)
+                     ("_" . "")))))
+         (result (jobcan--touch-response touch-response "result"))
+         (current-status (jobcan--touch-response touch-response "current_status")))
+    (jobcan--touch-return-message result current-status)))
 
 ;; (jobcan-top-informations :: (function (string) (list string)))
 (defun jobcan-top-informations ()
@@ -282,21 +273,21 @@
 ;; (jobcan-working-p :: (function () bool))
 (defun jobcan-working-p ()
   "Return a boolean value if the user is \"working\"."
-  (string= (jobcan-current-status) "working"))
+  (string= (jobcan--current-status) "working"))
 
 (defalias 'jobcan-working? 'jobcan-working-p)
 
 ;; (jobcan-resting-p :: (function () bool))
 (defun jobcan-resting-p ()
   "Return a boolean value if the user is \"resting\"."
-  (string= (jobcan-current-status) "resting"))
+  (string= (jobcan--current-status) "resting"))
 
 (defalias 'jobcan-resting? 'jobcan-resting-p)
 
 ;; (jobcan-having-breakfast-p :: (function () bool))
 (defun jobcan-having-breakfast-p ()
   "Return a boolean value if the user is \"having_breakfast\" (not yet at work)."
-  (string= (jobcan-current-status) "having_breakfast"))
+  (string= (jobcan--current-status) "having_breakfast"))
 
 (defalias 'jobcan-having-breakfast? 'jobcan-having-breakfast-p)
 
