@@ -215,8 +215,8 @@
   "Parse the html that can be obtained from LOAD-TOP-INFO (the monthly in load-top-informations)."
   (interactive)
   (car
-   (jobcan--decode-unicode-escape
-    (reverse (mapcar #'elquery-text
+   (mapcar #'jobcan--decode-unicode-escape
+           (reverse (mapcar #'elquery-text
                      (elquery-$ "span" (elquery-read-string (jobcan--get-top-informations))))))))
 
 ;; (jobcan--linked :: (function () ()))
