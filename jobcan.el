@@ -42,11 +42,18 @@
   :prefix "jobcan-"
   :link '(url-link "https://github.com/Kyure-A/jobcan.el"))
 
-(defcustom night-shift-p nil
+(defvar night-shift-p nil
   "Whether the user works the night shift or not."
   :type 'boolean)
 
 (defvaralias 'night-shift? 'night-shift-p)
+
+;; (jobcan-toggle-night-shift :: (function () ()))
+(defun jobcan-toggle-night-shift ()
+  (setq night-shift-p (not night-shift-p))
+  (if night-shift-p
+      (message "夜勤: ON")
+    (message "夜勤: OFF")))
 
 ;; (jobcan--extract-content-by-name :: (function (string string) string))
 (defun jobcan--extract-content-by-name (html-str name)
@@ -77,6 +84,15 @@
       (nth 5
            (car (elquery-$ "[name=token]" (elquery-read-string (request-response-data request-response))))))
      :value)))
+
+;; (jobcan--decode-unicode-escape :: (function () (string)))
+(defun jobcan--decode-unicode-escape (str)
+  "Decode Unicode escape sequences in a string."
+  (replace-regexp-in-string
+   "\\\\u\\([0-9a-fA-F]\\{4\\}\\)"
+   (lambda (match)
+     (string (string-to-number (match-string 1 match) 16)))
+   str t t))
 
 ;; (jobcan--get-top-informations :: (function () (list string)))
 (defun jobcan--get-top-informations ()
@@ -194,11 +210,13 @@
          (current-status (jobcan--touch-response touch-response "current_status")))
     (jobcan--touch-return-message result current-status)))
 
-;; (jobcan-top-informations :: (function (string) (list string)))
-(defun jobcan-top-informations ()
+;; (jobcan-work-time :: (function (string) (list string)))
+(defun jobcan-work-time ()
   "Parse the html that can be obtained from LOAD-TOP-INFO (the monthly in load-top-informations)."
-  (reverse (mapcar #'elquery-text
-                   (elquery-$ "span" (elquery-read-string (jobcan--get-top-informations))))))
+  (car
+   (jobcan--decode-unicode-escape
+    (reverse (mapcar #'elquery-text
+                     (elquery-$ "span" (elquery-read-string (jobcan--get-top-informations))))))))
 
 ;; (jobcan--linked :: (function () ()))
 (defun jobcan-linked ()
