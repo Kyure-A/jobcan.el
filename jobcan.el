@@ -43,8 +43,7 @@
   :link '(url-link "https://github.com/Kyure-A/jobcan.el"))
 
 (defvar night-shift-p nil
-  "Whether the user works the night shift or not."
-  :type 'boolean)
+  "Whether the user works the night shift or not.")
 
 (defvaralias 'night-shift? 'night-shift-p)
 
