@@ -49,6 +49,7 @@
 
 ;; (jobcan-toggle-night-shift :: (function () ()))
 (defun jobcan-toggle-night-shift ()
+  (interactive)
   (setq night-shift-p (not night-shift-p))
   (if night-shift-p
       (message "夜勤: ON")
@@ -212,6 +213,7 @@
 ;; (jobcan-work-time :: (function (string) (list string)))
 (defun jobcan-work-time ()
   "Parse the html that can be obtained from LOAD-TOP-INFO (the monthly in load-top-informations)."
+  (interactive)
   (car
    (jobcan--decode-unicode-escape
     (reverse (mapcar #'elquery-text
